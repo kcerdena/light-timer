@@ -10,7 +10,7 @@ Here's the specs:
 - I have a couple different plants planted in Oregon Coast sand and stone substrate. 
 - Another type of plant is floating on the surface.
 - (2) Endlers.
-- (2) silvery fish with blue eyes. Maybe rainbowfish?
+- (2) Silvery fish with blue eyes. Rainbowfish?
 - (3) Shrimp: Cherry, Crystal, and Yellow.  
 <img src="fish-tank.jpg" alt="fish tank" width="200"/>
 
@@ -24,6 +24,8 @@ Let's get this out of the way; I'm unwilling to change my routine such that I'm 
 - Arduino Pro Micro ATmega32U4 (5v, 16MHz)
 - DS3231 Real Time Clock
 - 2N2222 NPN Transistor
+- 270 Ohm Resistor
+- Toggle switch
 - Aquatop Pisces 5G Aquarium LED Light (modified)
 
 ### Light Prep
@@ -38,12 +40,12 @@ I popped the LED case open and inspected the driver circuit. The touch sensor wa
 - Arduino PIN 2 to RTC SDA
 - Arduino PIN 3 to RTC SCL
 - Arduino GND to Transistor Emitter (PIN3)
-- Arduino PIN A9 to 4.7 kOhm Resistor (R1)
+- Arduino PIN A9 to 270 Ohm Resistor (R1)
 - R1 to Transistor Base (PIN2)
 - Transistor Collector (PIN1) to White Light PWR (Red Wire; +7.2v measured) 
 
 ### Data
-I retrieved an .XLS of sunrise/sunset times for the entire year from the [NOAA Global Monitoring Laboratory website](https://gml.noaa.gov/grad/solcalc/calcdetails.html). After entering my local coordinates, i examined the sunrise and sunset data for the year. Coding a daily lookup table consumed too much memory. I decided to use a monthly lookup table. I found the latest sunrise and sunset times for the month and rounded to the nearest 10 minutes.
+I retrieved a table of sunrise/sunset times for the entire year from the [NOAA Global Monitoring Laboratory website](https://gml.noaa.gov/grad/solcalc/calcdetails.html). After entering my local coordinates, i examined the sunrise and sunset data for the year. Coding a daily lookup table consumed too much memory. I decided to use a monthly lookup table. I found the latest sunrise and sunset times for each month and rounded to the nearest 10 minutes.
 
 ### Logic
 - At Power ON, turn light on/off based on expected state for current time.

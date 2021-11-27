@@ -13,8 +13,6 @@ void setup()
 {
   // Setup the Serial
   Serial.begin(57600);
-  // while (!Serial)
-  //   delay(10);
 
   // Setup the RTC
   if (!RTC.begin())
@@ -92,10 +90,12 @@ bool light_should_be_on(DateTime now)
   Serial.println("Sunset: " + sunset.timestamp());
   if (now > sunset || now < sunrise)
   {
+    Serial.println("Expected Light Mode: OFF");
     return false;
   }
   else
   {
+    Serial.println("Expected Light Mode: ON");
     return true;
   }
 }
@@ -103,25 +103,27 @@ bool light_should_be_on(DateTime now)
 void transition_light(bool want_light_on)
 {
   if (want_light_on) {
-    Serial.println("Turning light off.");
+    Serial.println("Turning light on.");
     while (LIGHT_LEVEL < 255) {
       LIGHT_LEVEL++;
       analogWrite(LIGHT_PIN, LIGHT_LEVEL);
       int ll_pct = (LIGHT_LEVEL / 255.0) * 100;
-      Serial.println("Light Level: " + ll_pct);
+      Serial.println(ll_pct);
       delay(2500);
     }
     digitalWrite(LIGHT_PIN, HIGH);
+    Serial.println("Light Mode: ON");
   } else {
-    Serial.println("Turning light on.");
+    Serial.println("Turning light off.");
     while (LIGHT_LEVEL > 0) {
       LIGHT_LEVEL--;
       analogWrite(LIGHT_PIN, LIGHT_LEVEL);
       int ll_pct = (LIGHT_LEVEL / 255.0) * 100;
-      Serial.println("Light Level: " + ll_pct);
+      Serial.println(ll_pct);
       delay(2500);
     }
     digitalWrite(LIGHT_PIN, LOW);
+    Serial.println("Light Mode: OFF");
   }
 }
 
@@ -132,21 +134,13 @@ void loop()
   Serial.println("Current time: " + now.timestamp());
   bool want_light_on = light_should_be_on(now);
 
-  if (want_light_on) {
-    if (LIGHT_LEVEL < 255) {
-      transition_light(want_light_on);
-    } else {
-      digitalWrite(LIGHT_PIN, HIGH);
-      Serial.println("Light Mode: ON");
-    }
-  } else {
-    if (LIGHT_LEVEL > 0) {
-      transition_light(want_light_on);
-    } else {
-      digitalWrite(LIGHT_PIN, LOW);
-      Serial.println("Light Mode: OFF");
-    }
+  // transition light if necessary
+  if (want_light_on && LIGHT_LEVEL < 255) {
+    transition_light(want_light_on);
+  } else if (!want_light_on && LIGHT_LEVEL > 0) {
+    transition_light(want_light_on);
   }
+
   // WAIT 60 seconds
   delay(60000);
   Serial.println("");
