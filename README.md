@@ -23,35 +23,40 @@ Let's get this out of the way; I'm unwilling to change my routine such that I'm 
 ### Materials
 - Arduino Pro Micro ATmega32U4 (5v, 16MHz)
 - DS3231 Real Time Clock
-- SRD-05VDC-SL-C Relay
+- 2N2222 NPN Transistor
 - Aquatop Pisces 5G Aquarium LED Light (modified)
 
 ### Light Prep
 I popped the LED case open and inspected the driver circuit. The touch sensor was incredibly sensitive. I wasn't able to intercept it. The light uses a 12V power supply. Moonlight and White light circuits are ground switched. I observed that Moonlight remains on while the White light is on. I soldered (3) wires onto the circuit board and extended them outside the case. (BLK) power supply ground, (YLW) power supply +12V, (RED) White light +7.2V.  
 
 ### Circuit Wiring:
-- +12v Fish Tank Light to Arduino RAW (Yellow Wire; +11.91v measured) 
+- +12v Fish Tank Light (Yellow Wire; +11.91v measured) to Toggle Switch (PWR)
+- Toggle Switch (PWR) to Arduino RAW 
 - GND Fish Tank Light to Arduino GND (Black Wire)
 - Arduino VCC to RTC VCC
 - Arduino GND to RTC GND
 - Arduino PIN 2 to RTC SDA
 - Arduino PIN 3 to RTC SCL
-- Arduino VCC to Relay VCC
-- Arduino GND to Relay GND
-- Arduino PIN 7 to Relay INPUT
-- Relay GND to Relay COM
-- Relay NO to White Light PWR (Red Wire; +7.2v measured) 
+- Arduino GND to Transistor Emitter (PIN3)
+- Arduino PIN A9 to 4.7 kOhm Resistor (R1)
+- R1 to Transistor Base (PIN2)
+- Transistor Collector (PIN1) to White Light PWR (Red Wire; +7.2v measured) 
 
 ### Data
 I retrieved an .XLS of sunrise/sunset times for the entire year from the [NOAA Global Monitoring Laboratory website](https://gml.noaa.gov/grad/solcalc/calcdetails.html). After entering my local coordinates, i examined the sunrise and sunset data for the year. Coding a daily lookup table consumed too much memory. I decided to use a monthly lookup table. I found the latest sunrise and sunset times for the month and rounded to the nearest 10 minutes.
 
 ### Logic
-- Get current time from RTC.
-- Lookup today's sunrise and sunset time.
-- If it's after sunset, turn the light off.
-- Otherwise, if it's after sunrise, turn the light on.
-- Otherwise, turn the light off.
-- Wait 60 seconds and repeat. 
+- At Power ON, turn light on/off based on expected state for current time.
+- If it's sunset, dim light over 10 minutes until light at 0%.
+- If it's sunrise, increase light over 10 minutes util light at 100%.
+
+## Operating Notes
+Light will auto-cycle between Moonlight and ON at Sunset/Sunrise with dimming transitions.  
+Light Timer only controls LED White Light function. LED Touch Sensor remains operational.  
+For auto-cycle operation between Moonlight and ON, leave LED Touch Sensor switched to Moonlight.  
+For auto-cycle operation between OFF and ON, leave LED Touch Sensor switched OFF. (Not recommended)
+  *This will affect light color. LED is intended to operate with both Moonlight and White light on.  
+If LED Touch Sensor is switched to ON, Light Timer will have no effect.  
 
 ## Failed attempts
 - I went on the big ecommerce site and searched for a fish tank light timer. I found something that plugged inline with my light's power supply. It had selectable hour intervals and a sunrise / sunset function. I  gave it a try. Turns out, my light isn't compatible with the timer's sunrise/sunset function. My light would pass through a strobe phase as it increased brightness from 0% to 100%. Once it reached 100% brightness, it would be in Moonlight mode regardless of the mode it was in last. That wasn't anticipated and wasn't acceptable . Additionally, because it operated inline with the power supply, the light would be powered off at night rather than using the Moonlight mode. This helped clarify my desired behavior. I want my light to switch between On and Moonlight modes. The dimmer ramp at on/Moonlight transitions would be cool too.  
@@ -60,3 +65,4 @@ I retrieved an .XLS of sunrise/sunset times for the entire year from the [NOAA G
 - I tried to switch the light by attaching it directly to a pin on the Arduino pulled LOW. That worked once, maybe twice, before I had stability issues. Voltage mismatch cooked my Arduino.
 - Soldered up a new Arduino and loaded code. It ran well for a couple minutes before the stability issues. When it dropped my serial connection for the last time, I observed a tiny glowing spark between pins on the ATMega chip. With a wisp of smoke, it was like a tiny campfire. Chalk this up to an assembly defect. Mine or the manufacturer's, we'll never know.
 - After soldering up a 3rd Arduino, I tried a code varient that used a sunrise/sunset time lookup table for every day of the year. I quickly ran out of memory on the little Arduino and had to refactor.
+- I used a relay to switch the LED on/off. This didn't get me the dimmer ramp on transitions. It would be really noisy trying to handle a PWM signal, even if it could switch fast enough.
